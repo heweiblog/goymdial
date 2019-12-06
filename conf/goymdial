@@ -1,0 +1,68 @@
+#! /bin/bash
+#
+# goymdial	start/stop manager
+#
+# Authors: yamu, 2016, <yamu@yamutech.com>
+#
+# chkconfig: 345 13 87
+# description: goymdial start/stop manager
+#
+# processname: /usr/bin/goymdial
+# pidfile: /var/run/goymdial.pid
+
+# source function library
+. /etc/rc.d/init.d/functions
+
+RETVAR=0
+PROG="goymdial"
+LOCK_FILE=/var/lock/subsys/goymdial
+pidfile=/var/run/goymdial.pid
+EDNS_DIAL_BIN=/usr/bin/goymdial
+kill_pid=/var/run/goymdial.kill
+
+case "$1" in
+	start)
+		echo "Starting goymdial: "
+			daemon --pidfile=$pidfile ${EDNS_DIAL_BIN} start 
+			RETVAR=$?
+		if [ $RETVAR -ne 0 ]
+		then
+			exit 6
+		fi
+		
+		echo "$(pgrep goymdial|head -1)" > $pidfile
+		touch ${LOCK_FILE}
+		;;
+
+	stop)
+		echo -n $"Shutting down $PROG: "
+		if [ -f $pidfile ]
+		then
+			killall -9 goymdial
+			RETVAR=$?
+			rm -f $pidfile
+		else
+			killall -9 goymdial
+			RETVAR=$?
+		fi
+		[ $RETVAR -ne 0 ] && exit 6
+		rm -f $LOCK_FILE
+		;;
+
+	restart|reload|force-reload)
+		$0 stop
+		$0 start
+		RETVAR=$?
+		;;
+
+	status)
+		status $EDNS_DIAL_BIN
+		RETVAR=$?
+		;;
+	*)
+		echo $"Usage: $0 {start|stop|restart|reload|force-reload|status}"
+		exit 2
+		;;
+esac
+
+exit $RETVAR
