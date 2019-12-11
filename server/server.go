@@ -2,6 +2,7 @@ package server
 
 import (
 	"git.apache.org/thrift.git/lib/go/thrift"
+	"goymdial/conf"
 	"goymdial/gen-go/rpc/dial/yamutech/com"
 	"log"
 	"os"
@@ -12,15 +13,14 @@ type Handle struct {
 }
 
 func Dial_server_start() {
-	DialAddr := "127.0.0.1:9096"
-	serverTransport, err := thrift.NewTServerSocket(DialAddr)
+	serverTransport, err := thrift.NewTServerSocket(conf.Conf.DialServer)
 	if err != nil {
 		log.Println("Error!", err)
 		os.Exit(1)
 	}
 	processor := com.NewDialProcessor(Handle{})
 	server := thrift.NewTSimpleServer2(processor, serverTransport)
-	log.Println("Dial thrift server in", DialAddr)
+	log.Println("Dial thrift server in", conf.Conf.DialServer)
 
 	server.Serve()
 }
